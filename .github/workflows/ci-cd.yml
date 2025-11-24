@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -17,21 +17,30 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest .
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/url-shortener:latest .
+        echo "✅ URL Shortener built successfully!"
 
     - name: Push to Docker Hub
       run: |
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/url-shortener:latest
+        echo "✅ Image pushed to Docker Hub!"
 
-    - name: Send Telegram Success
+    - name: Notify Telegram - SUCCESS
+      if: success()
       uses: appleboy/telegram-action@master
       with:
         to: ${{ secrets.TELEGRAM_CHAT_ID }}
         token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         message: |
-          🎉 DOCKER IMAGE BUILT & PUSHED!
+          🎉 URL SHORTENER DEPLOYED!
           
-          📦 Image: ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest
-          🐳 View: https://hub.docker.com/r/${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app
-          🔗 GitHub: ${{ github.repository }}
+          📦 Image: ${{ secrets.DOCKERHUB_USERNAME }}/url-shortener:latest
+          🚀 Features:
+          • Shorten URLs
+          • Visit statistics  
+          • REST API
+          
+          🔗 Test it:
+          docker run -p 8000:8000 ${{ secrets.DOCKERHUB_USERNAME }}/url-shortener
+          
           👤 By: ${{ github.actor }}
