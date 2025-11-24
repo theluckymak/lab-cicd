@@ -1,0 +1,37 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Login to Docker Hub
+      run: |
+        echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest .
+
+    - name: Push to Docker Hub
+      run: |
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest
+
+    - name: Send Telegram Success
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_CHAT_ID }}
+        token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        message: |
+          🎉 DOCKER IMAGE BUILT & PUSHED!
+          
+          📦 Image: ${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app:latest
+          🐳 View: https://hub.docker.com/r/${{ secrets.DOCKERHUB_USERNAME }}/my-cicd-app
+          🔗 GitHub: ${{ github.repository }}
+          👤 By: ${{ github.actor }}
